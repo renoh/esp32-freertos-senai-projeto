@@ -19,6 +19,13 @@
 #define TAG "main"
 #define BUTTON GPIO_NUM_17
 #define LED GPIO_NUM_2
+#define LED_BLINK_MS 300
+
+/**
+ * Protótipos
+ */
+void task_button(void *pvParameter);
+void task_led_blink(void *pvParameter);
 
 /**
  * Task responsavel pela varredura do botao;
@@ -68,6 +75,24 @@ void task_button(void *pvParameter)
     }
 }
 
+/**
+ * Task responsavel por piscar o LED
+ */
+void task_led_blink(void *pvParameter)
+{
+    if (DEBUG)
+        ESP_LOGD(TAG, "task_led_blink run...");
+
+    gpio_set_direction(LED, GPIO_MODE_OUTPUT);
+    int level = 0;
+    while (true)
+    {
+        gpio_set_level(LED, level);
+        level = !level;
+        vTaskDelay(LED_BLINK_MS / portTICK_PERIOD_MS);
+    }
+}
+
 // esp_err_t event_handler(void *ctx, system_event_t *event)
 // {
 //     return ESP_OK;
@@ -89,6 +114,16 @@ void app_main(void)
         return;
     }
 
+    /*
+       Task responsavel em piscar o LED.
+    */
+    if (xTaskCreate(task_led_blink, "task_led_blink", 4098, NULL, 2, NULL) != pdTRUE)
+    {
+        if (DEBUG)
+            ESP_LOGE(TAG, "Nao foi possivel alocar task_led_blink.");
+        return;
+    }
+
     // nvs_flash_init();
     // tcpip_adapter_init();
     // ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
@@ -104,13 +139,4 @@ void app_main(void)
     // ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
     // ESP_ERROR_CHECK(esp_wifi_start());
     // ESP_ERROR_CHECK(esp_wifi_connect());
-
-    gpio_set_direction(GPIO_NUM_2, GPIO_MODE_OUTPUT);
-    int level = 0;
-    while (true)
-    {
-        gpio_set_level(GPIO_NUM_2, level);
-        level = !level;
-        vTaskDelay(300 / portTICK_PERIOD_MS);
-    }
 }
