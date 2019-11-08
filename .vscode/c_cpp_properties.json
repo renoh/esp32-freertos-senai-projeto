@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "ESP32",
+            "defines": [],
+            "compilerPath": "~/esp/esp-idf/tools/idf.py",
+            "cStandard": "c99",
+            "cppStandard": "c++11",
+            "intelliSenseMode": "${default}",
+            "compilerArgs": [
+                "app"
+            ],
+            "includePath": [
+                "~/esp/esp-idf/components/**",
+                "~/esp/esp-idf-template-master/build/config/",
+                "/xtensa-esp32-elf/xtensa-esp32-elf/include",
+                "/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include",
+                "/xtensa-esp32-elf/lib/gcc/xtensa-esp32-elf/5.2.0/include-fixed"
+            ]
+        }
+    ],
+    "version": 4
+}
