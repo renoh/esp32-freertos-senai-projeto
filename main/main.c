@@ -6,6 +6,12 @@
 #include "nvs_flash.h"
 #include "driver/gpio.h"
 
+/**
+ * Log
+ */
+#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
+#include "esp_log.h"
+
 esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     return ESP_OK;
@@ -13,6 +19,10 @@ esp_err_t event_handler(void *ctx, system_event_t *event)
 
 void app_main(void)
 {
+    // possibilita desabilitar log de debug
+    if (!DEBUG)
+        esp_log_level_set(TAG, ESP_LOG_INFO);
+
     nvs_flash_init();
     tcpip_adapter_init();
     ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
