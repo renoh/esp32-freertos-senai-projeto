@@ -47,33 +47,25 @@ void task_button(void *pvParameter)
 
     for(;;)
     {
-        if(gpio_get_level(BUTTON) == 0 && auxBounce == 0)
+        if(gpio_get_level(BUTTON) == auxBounce)
         {
             /**
             * Aguarda 80 ms devido o bounce;
             */
             vTaskDelay(80/portTICK_PERIOD_MS);
 
-            if(gpio_get_level(BUTTON) == 0 && auxBounce == 0)
+            if(gpio_get_level(BUTTON) == auxBounce)
             {
+                auxBounce = !auxBounce;
                 if(DEBUG)
-                    ESP_LOGD(TAG, "Button %d Pressionado", BUTTON);
-                auxBounce = 1;
+                    ESP_LOGD(TAG, "Button %d %s.", BUTTON, auxBounce ? "Pressionado" : "Solto");
 
-                sprintf(str, "%d", counter);
-                ESP_LOGI(TAG, "%s", str);
-            }
-        }
-
-        if(gpio_get_level(BUTTON) == 1 && auxBounce == 1)
-        {
-            vTaskDelay( 80/portTICK_PERIOD_MS );
-
-            if(gpio_get_level( BUTTON ) == 1 && auxBounce == 1)
-            {
-                if(DEBUG)
-                    ESP_LOGD(TAG, "Button %d Solto", BUTTON);
-                auxBounce = 0;
+                if (auxBounce) // botao pressionado
+                {
+                    sprintf(str, "%d", counter);
+                    ESP_LOGI(TAG, "%s", str);
+                    counter++;
+                }
             }
         }
 
