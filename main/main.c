@@ -12,9 +12,73 @@
 #define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 #include "esp_log.h"
 
+/**
+ * Definições Gerais
+ */
+#define DEBUG       1
+#define TAG         "main"
+#define BUTTON      GPIO_NUM_17
+#define LED         GPIO_NUM_2
+
 esp_err_t event_handler(void *ctx, system_event_t *event)
 {
     return ESP_OK;
+}
+
+/**
+ * Task responsavel pela varredura do botao;
+ * Ao pressionar button, o valor de counter eh enviado ao log (serial)
+ */
+void task_button(void *pvParameter)
+{
+    char str[20];
+    int auxBounce = 0;
+    int counter = 0;
+
+    if( DEBUG )
+        ESP_LOGD(TAG, "task_button run...");
+
+    /**
+     * Configura a Button como entrada;
+     */
+    gpio_pad_select_gpio(BUTTON);
+    gpio_set_direction(BUTTON, GPIO_MODE_INPUT);
+    gpio_set_pull_mode(BUTTON, GPIO_PULLUP_ONLY);
+
+    for(;;)
+    {
+        if(gpio_get_level(BUTTON) == 0 && auxBounce == 0)
+        {
+            /**
+            * Aguarda 80 ms devido o bounce;
+            */
+            vTaskDelay(80/portTICK_PERIOD_MS);
+
+            if(gpio_get_level(BUTTON) == 0 && auxBounce == 0)
+            {
+                if(DEBUG)
+                    ESP_LOGD(TAG, "Button %d Pressionado", BUTTON);
+                auxBounce = 1;
+
+                sprintf(str, "%d", counter);
+                ESP_LOGI(TAG, "%s", str);
+            }
+        }
+
+        if(gpio_get_level(BUTTON) == 1 && auxBounce == 1)
+        {
+            vTaskDelay( 80/portTICK_PERIOD_MS );
+
+            if(gpio_get_level( BUTTON ) == 1 && auxBounce == 1)
+            {
+                if(DEBUG)
+                    ESP_LOGD(TAG, "Button %d Solto", BUTTON);
+                auxBounce = 0;
+            }
+        }
+
+        vTaskDelay( 10/portTICK_PERIOD_MS );
+    }
 }
 
 void app_main(void)
@@ -22,6 +86,16 @@ void app_main(void)
     // possibilita desabilitar log de debug
     if (!DEBUG)
         esp_log_level_set(TAG, ESP_LOG_INFO);
+
+    /*
+       Task responsavel em ler estado do botao.
+    */
+    if( xTaskCreate(task_button, "task_button", 4098, NULL, 2, NULL)  != pdTRUE)
+    {
+      if(DEBUG)
+        ESP_LOGE(TAG, "Nao foi possivel alocar task_button.");
+      return;
+    }
 
     nvs_flash_init();
     tcpip_adapter_init();
