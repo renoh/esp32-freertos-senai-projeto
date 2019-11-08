@@ -15,10 +15,10 @@
 /**
  * Definições Gerais
  */
-#define DEBUG       1
-#define TAG         "main"
-#define BUTTON      GPIO_NUM_17
-#define LED         GPIO_NUM_2
+#define DEBUG 1
+#define TAG "main"
+#define BUTTON GPIO_NUM_17
+#define LED GPIO_NUM_2
 
 esp_err_t event_handler(void *ctx, system_event_t *event)
 {
@@ -35,7 +35,7 @@ void task_button(void *pvParameter)
     int auxBounce = 0;
     int counter = 0;
 
-    if( DEBUG )
+    if (DEBUG)
         ESP_LOGD(TAG, "task_button run...");
 
     /**
@@ -45,19 +45,19 @@ void task_button(void *pvParameter)
     gpio_set_direction(BUTTON, GPIO_MODE_INPUT);
     gpio_set_pull_mode(BUTTON, GPIO_PULLUP_ONLY);
 
-    for(;;)
+    for (;;)
     {
-        if(gpio_get_level(BUTTON) == auxBounce)
+        if (gpio_get_level(BUTTON) == auxBounce)
         {
             /**
             * Aguarda 80 ms devido o bounce;
             */
-            vTaskDelay(80/portTICK_PERIOD_MS);
+            vTaskDelay(80 / portTICK_PERIOD_MS);
 
-            if(gpio_get_level(BUTTON) == auxBounce)
+            if (gpio_get_level(BUTTON) == auxBounce)
             {
                 auxBounce = !auxBounce;
-                if(DEBUG)
+                if (DEBUG)
                     ESP_LOGD(TAG, "Button %d %s.", BUTTON, auxBounce ? "Pressionado" : "Solto");
 
                 if (auxBounce) // botao pressionado
@@ -69,7 +69,7 @@ void task_button(void *pvParameter)
             }
         }
 
-        vTaskDelay( 10/portTICK_PERIOD_MS );
+        vTaskDelay(10 / portTICK_PERIOD_MS);
     }
 }
 
@@ -82,34 +82,33 @@ void app_main(void)
     /*
        Task responsavel em ler estado do botao.
     */
-    if( xTaskCreate(task_button, "task_button", 4098, NULL, 2, NULL)  != pdTRUE)
+    if (xTaskCreate(task_button, "task_button", 4098, NULL, 2, NULL) != pdTRUE)
     {
-      if(DEBUG)
-        ESP_LOGE(TAG, "Nao foi possivel alocar task_button.");
-      return;
+        if (DEBUG)
+            ESP_LOGE(TAG, "Nao foi possivel alocar task_button.");
+        return;
     }
 
     nvs_flash_init();
     tcpip_adapter_init();
-    ESP_ERROR_CHECK( esp_event_loop_init(event_handler, NULL) );
+    ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    ESP_ERROR_CHECK( esp_wifi_init(&cfg) );
-    ESP_ERROR_CHECK( esp_wifi_set_storage(WIFI_STORAGE_RAM) );
-    ESP_ERROR_CHECK( esp_wifi_set_mode(WIFI_MODE_STA) );
+    ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+    ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+    ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     wifi_config_t sta_config = {
         .sta = {
             .ssid = CONFIG_ESP_WIFI_SSID,
             .password = CONFIG_ESP_WIFI_PASSWORD,
-            .bssid_set = false
-        }
-    };
-    ESP_ERROR_CHECK( esp_wifi_set_config(WIFI_IF_STA, &sta_config) );
-    ESP_ERROR_CHECK( esp_wifi_start() );
-    ESP_ERROR_CHECK( esp_wifi_connect() );
+            .bssid_set = false}};
+    ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &sta_config));
+    ESP_ERROR_CHECK(esp_wifi_start());
+    ESP_ERROR_CHECK(esp_wifi_connect());
 
     gpio_set_direction(GPIO_NUM_2, GPIO_MODE_OUTPUT);
     int level = 0;
-    while (true) {
+    while (true)
+    {
         gpio_set_level(GPIO_NUM_2, level);
         level = !level;
         vTaskDelay(300 / portTICK_PERIOD_MS);
